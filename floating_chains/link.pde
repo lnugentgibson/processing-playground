@@ -11,6 +11,16 @@ class Link {
     a = new ArrayList<Segment>();
     b = new ArrayList<Segment>();
   }
+  ArrayList<Link> getNeighbors() {
+    ArrayList<Link> neighbors = new ArrayList<Link>();
+    for(Segment segment : a) {
+      neighbors.add(segment.b);
+    }
+    for(Segment segment : b) {
+      neighbors.add(segment.a);
+    }
+    return neighbors;
+  }
   Link(PVector _p) {
     this(_p, new PVector(0, 0));
   }
@@ -18,8 +28,24 @@ class Link {
     ellipseMode(RADIUS);
     fill(255);
     stroke(0);
-    strokeWeight(1);
-    ellipse(p.x, p.y, 4, 4);
+    strokeWeight(2);
+    ellipse(p.x, p.y, 2, 2);
+    stroke(0, 255, 0);
+    line(p.x, p.y, p.x + 8 * v.x, p.y + 8 * v.y);
+    for(Segment segment : a) {
+      PVector u = PVector.sub(segment.b.p, p);
+      u.normalize();
+      PVector _v = PVector.mult(u, u.dot(v));
+      stroke(0, 255, 255);
+      line(p.x, p.y, p.x + 8 * _v.x, p.y + 8 * _v.y);
+    }
+    for(Segment segment : b) {
+      PVector u = PVector.sub(p, segment.a.p);
+      u.normalize();
+      PVector _v = PVector.mult(u, u.dot(v));
+      stroke(0, 255, 255);
+      line(p.x, p.y, p.x + 8 * _v.x, p.y + 8 * _v.y);
+    }
   }
   PVector react(PVector f) {
     return f.copy();
