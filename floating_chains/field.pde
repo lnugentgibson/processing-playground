@@ -97,17 +97,17 @@ class Field {
       for(int j = 0; j < 2; j++) {
         int _i = r + i;
         if(_i < 0) {
-          _i += H;
+          _i = _i % H + H;
         }
         if(_i >= H) {
-          _i -= H;
+          _i = _i % H;
         }
         int _j = c + j;
         if(_j < 0) {
-          _j += W;
+          _j = _j % W + W;
         }
         if(_j >= W) {
-          _j -= W;
+          _j = _j % W;
         }
         v.add(PVector.mult(grid[_i][_j], (i == 0 ? 1 - f.y : f.y) * (j == 0 ? 1 - f.x : f.x)));
       }

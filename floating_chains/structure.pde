@@ -69,16 +69,117 @@ class Structure {
     for(Link link : links) {
       link.draw();
     }
+    Rectangle b = bounds();
+    if(b.x < 0) {
+      for(Segment segment : segments) {
+        segment.draw(new PVector(width, 0));
+      }
+      for(Link link : links) {
+        link.draw(new PVector(width, 0));
+      }
+      if(b.y < 0) {
+        for(Segment segment : segments) {
+          segment.draw(new PVector(width, height));
+        }
+        for(Link link : links) {
+          link.draw(new PVector(width, height));
+        }
+      } else if(b.y + b.h >= width) {
+        for(Segment segment : segments) {
+          segment.draw(new PVector(width, -height));
+        }
+        for(Link link : links) {
+          link.draw(new PVector(width, -height));
+        }
+      }
+    } else if(b.x + b.w >= width) {
+      for(Segment segment : segments) {
+        segment.draw(new PVector(-width, 0));
+      }
+      for(Link link : links) {
+        link.draw(new PVector(-width, 0));
+      }
+      if(b.y < 0) {
+        for(Segment segment : segments) {
+          segment.draw(new PVector(-width, height));
+        }
+        for(Link link : links) {
+          link.draw(new PVector(-width, height));
+        }
+      } else if(b.y + b.h >= width) {
+        for(Segment segment : segments) {
+          segment.draw(new PVector(-width, -height));
+        }
+        for(Link link : links) {
+          link.draw(new PVector(-width, -height));
+        }
+      }
+    }
+    if(b.y < 0) {
+      for(Segment segment : segments) {
+        segment.draw(new PVector(0, height));
+      }
+      for(Link link : links) {
+        link.draw(new PVector(0, height));
+      }
+    } else if(b.y + b.h >= width) {
+      for(Segment segment : segments) {
+        segment.draw(new PVector(0, -height));
+      }
+      for(Link link : links) {
+        link.draw(new PVector(0, -height));
+      }
+    }
   }
   void update() {
     for(Link link : links) {
-      link.update(field.force(link.p), delta);
+      link.updatePosition(delta);
+    }
+    for(Segment segment : segments) {
+      segment.constrainPosition();
+    }
+    for(Link link : links) {
+      link.updateVelocity(field.force(link.p), delta);
+    }
+    for(Segment segment : segments) {
+      segment.constrainVelocity();
     }
     for(Link link : links) {
       link.update();
     }
-    for(Segment segment : segments) {
-      segment.constrain();
+    Rectangle b = bounds();
+    if(!b.intersects(new Rectangle(0, 0, width, height))) {
+      while(b.x + b.w < 0) {
+        for(Link link : links) {
+          link.p.x = link.p.x + width;
+        }
+        b = bounds();
+      }
+      while(b.x >= width) {
+        for(Link link : links) {
+          link.p.x = link.p.x - width;
+        }
+        b = bounds();
+      }
+      while(b.y + b.h < 0) {
+        for(Link link : links) {
+          link.p.y = link.p.y + height;
+        }
+        b = bounds();
+      }
+      while(b.y >= height) {
+        for(Link link : links) {
+          link.p.y = link.p.y - height;
+        }
+        b = bounds();
+      }
     }
+  }
+  Rectangle bounds() {
+    Rectangle b = null;
+    for(Segment segment : segments) {
+      b = b == null ? segment.bounds() : b.container(segment.bounds());
+    }
+    return b;
   }
 }

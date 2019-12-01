@@ -4,6 +4,7 @@ class Link {
   PVector v, v_staging;
   ArrayList<Segment> a;
   ArrayList<Segment> b;
+  final float r = 2;
   Link(PVector _p, PVector _v) {
     p = _p;
     v = _v;
@@ -25,34 +26,62 @@ class Link {
     this(_p, new PVector(0, 0));
   }
   void draw() {
+    draw(new PVector(0, 0));
+  }
+  void draw(PVector offset) {
     ellipseMode(RADIUS);
     fill(255);
     stroke(0);
     strokeWeight(2);
-    ellipse(p.x, p.y, 2, 2);
+    float x = p.x + offset.x;
+    float y = p.y + offset.y;
+    if(x < 0) {
+      x = x % width + width;
+    }
+    if(x >= width) {
+      x = x % width;
+    }
+    if(y < 0) {
+      y = y % height + height;
+    }
+    if(y >= height) {
+      y = y % height;
+    }
+    ellipse(x, y, r, r);
+    /*
     stroke(0, 255, 0);
-    line(p.x, p.y, p.x + 8 * v.x, p.y + 8 * v.y);
+    line(x, y, x + 8 * v.x, y + 8 * v.y);
     for(Segment segment : a) {
       PVector u = PVector.sub(segment.b.p, p);
       u.normalize();
       PVector _v = PVector.mult(u, u.dot(v));
       stroke(0, 255, 255);
-      line(p.x, p.y, p.x + 8 * _v.x, p.y + 8 * _v.y);
+      line(x, y, x + 8 * _v.x, y + 8 * _v.y);
     }
     for(Segment segment : b) {
       PVector u = PVector.sub(p, segment.a.p);
       u.normalize();
       PVector _v = PVector.mult(u, u.dot(v));
       stroke(0, 255, 255);
-      line(p.x, p.y, p.x + 8 * _v.x, p.y + 8 * _v.y);
+      line(x, y, x + 8 * _v.x, y + 8 * _v.y);
     }
+    //*/
   }
   PVector react(PVector f) {
     return f.copy();
   }
-  void update(PVector exf, float delta) {
+  void updatePosition(float delta) {
     boolean debug = false;
-    if(debug) { System.out.println("update"); }
+    if(debug) { System.out.println("updatePosition"); }
+    if(debug) { System.out.println(delta); }
+    if(debug) { System.out.println(v); }
+    if(debug) { System.out.println(p); }
+    p_staging = PVector.add(p, PVector.mult(v, delta));
+    if(debug) { System.out.println(p_staging); }
+  }
+  void updateVelocity(PVector exf, float delta) {
+    boolean debug = false;
+    if(debug) { System.out.println("updateVelocity"); }
     if(debug) { System.out.println(exf); }
     if(debug) { System.out.println(delta); }
     PVector f = react(exf);
@@ -60,27 +89,21 @@ class Link {
     PVector a = PVector.mult(f, 1 / m);
     if(debug) { System.out.println(a); }
     if(debug) { System.out.println(v); }
-    if(debug) { System.out.println(p); }
-    v_staging = PVector.add(PVector.mult(v, 0.9), PVector.mult(a, delta));
+    PVector _v = PVector.sub(p_staging, p);
+    _v.mult(1 / delta);
+    _v = v;
+    if(debug) { System.out.println(_v); }
+    v_staging = PVector.add(PVector.mult(_v, 0.9), PVector.mult(a, delta));
     if(debug) { System.out.println(v_staging); }
-    p_staging = PVector.add(p, PVector.mult(v, delta));
-    if(debug) { System.out.println(p_staging); }
-    if(p_staging.x >= width) {
-      p_staging.x = p_staging.x % width;
-    }
-    if(p_staging.x < 0) {
-      p_staging.x = p_staging.x % width + width;
-    }
-    if(p_staging.y >= height) {
-      p_staging.y = p_staging.y % height;
-    }
-    if(p_staging.y < 0) {
-      p_staging.y = p_staging.y % height + height;
-    }
-    if(debug) { System.out.println(p_staging); }
   }
   void update() {
     p = p_staging;
     v = v_staging;
+  }
+  Rectangle bounds() {
+    return bounds(r);
+  }
+  Rectangle bounds(float r) {
+    return new Rectangle(p.x - r, p.y - r, 2 * r, 2 * r);
   }
 }
