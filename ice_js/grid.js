@@ -44,6 +44,21 @@ class Grid {
       length: {
         get: () => len
       },
+      ids: {
+        get: () => grid.reduce(
+          (m1, row, i) =>
+            m1.concat(
+              row.cells.reduce(
+                (m2, cell, j) =>
+                  m2.concat(
+                    cell.entities.map(entity => entity.id)
+                  ),
+                []
+              )
+            ),
+          []
+        ),
+      },
       push: {
         get: () => {
           return (value, position) => {
@@ -78,7 +93,7 @@ class Grid {
       },
       getPosition: {
         get: () => {
-          return (id) => index[id].position;
+          return (id) => index[id].position.copy();
         }
       },
       updateValue: {
