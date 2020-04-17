@@ -6,7 +6,7 @@ function PoissonDiscSampling(r, k, n) {
     for (var iteration = 0; iteration < 20 && active.length; iteration++) {
       var activeIndex = floor(random(active.length));
       var currentIndex = active[activeIndex];
-      var current = grid.get(currentIndex);
+      var current = grid.getValue(currentIndex);
       var currentPosition = grid.getPosition(currentIndex);
       var added = 0;
       for (var i = 0; i < k; i++) {
