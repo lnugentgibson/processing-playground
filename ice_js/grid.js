@@ -71,7 +71,7 @@ class Grid {
           };
         }
       },
-      get: {
+      getValue: {
         get: () => {
           return (id) => index[id].value;
         }
@@ -80,6 +80,34 @@ class Grid {
         get: () => {
           return (id) => index[id].position;
         }
+      },
+      updateValue: {
+        get: () => {
+          return (id, value) => {
+            var entity = index[id];
+            entity.value = value;
+          };
+        },
+      },
+      updatePosition: {
+        get: () => {
+          return (id, position) => {
+            var entity = index[id];
+            let { col: oldCol, row: oldRow } = entity;
+            var oldCell = grid[oldRow].cells[oldCol];
+            let { col, row } = indexOf(position);
+            if(oldRow != row || oldCol != col) {
+              oldCell.entities = oldCell.entities.filter(entity => entity.id != id);
+              var cell = grid[row].cells[col];
+              cell.entities.push(entity);
+              Object.apply(entity, {
+                row,
+                col,
+                position,
+              });
+            }
+          };
+        },
       },
       remove: {
         get: () => {

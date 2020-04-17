@@ -1,19 +1,19 @@
 var resolution = 1024;
 
-var bases;
+var ice;
 
 var camera, zoom;
 
 $(() => {
   $("#button").click(() => {
     console.log("#button.click()");
-    bases = setupGame(16);
+    ice = new Ice(6, 16);
   });
 });
 
 function setup() {
   createCanvas(resolution, resolution);
-  bases = setupGame(/* numBases */ 16);
+  ice = new Ice(6, /* numBases */ 16);
   camera = createVector(width / 2, height / 2);
   zoom = 1;
 }
@@ -24,8 +24,8 @@ function draw() {
   translate(-camera.x, -camera.y);
   translate(width / 2 / zoom, height / 2 / zoom);
   background(0);
-  bases.draw();
-  bases.update();
+  ice.draw();
+  ice.update();
   /*
   stroke('red');
   strokeWeight(3);
@@ -54,7 +54,7 @@ function draw() {
 }
 
 function mouseWheel(event) {
-  zoom += event.delta / 500;
+  zoom -= event.delta / 500;
   return false;
 }
 
@@ -67,9 +67,11 @@ function mousePressed() {
 }
 
 function mouseDragged() {
-  camera.x -= (mouseX - lastX) / zoom;
-  camera.y -= (mouseY - lastY) / zoom;
-  lastX = mouseX;
-  lastY = mouseY;
+  if(mouseButton == CENTER) {
+    camera.x -= (mouseX - lastX) / zoom;
+    camera.y -= (mouseY - lastY) / zoom;
+    lastX = mouseX;
+    lastY = mouseY;
+  }
   return false;
 }
