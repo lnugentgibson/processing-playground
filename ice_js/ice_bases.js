@@ -72,6 +72,7 @@ class Bases {
     this.forEachBase((base) => {
       base.draw();
     });
+    strokeCap(SQUARE);
     this.forEachEdge((edge, source, dest) => {
       if (source.owner == undefined) {
         stroke(255);

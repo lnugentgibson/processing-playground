@@ -91,9 +91,9 @@ class Ice {
               position.add(shift);
               shipGrid.updatePosition(id, position);
             };
-            for(var i = 0; i < 32; i++) {
-              updateShip(ids[i]);
-            }
+            ids.forEach(id => {
+              updateShip(id);
+            });
           };
         },
       },

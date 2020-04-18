@@ -67,7 +67,7 @@ class Grid {
           rows[i][j] = [];
           return cell.entities.every((entity, k) => {
             let { val, cont } = f.call(ctx, accum, entity.value, entity.position, i - 1, j - 1, k, entity.id);
-            rows[i][j] = accum = val;
+            rows[i][j][k] = accum = val;
             return cont;
           });
         });
@@ -98,8 +98,9 @@ class Grid {
           rows[rowIndex][colIndex] = [];
           grid[i + 1].cells[j + 1].entities.every((entity, k) => {
             var ret = f.call(ctx, accum, entity.value, entity.position, i, j, k, entity.id);
-            rows[i][j] = accum = ret.val;
-            return cont = ret.cont;
+            rows[rowIndex][colIndex][k] = accum = ret.val;
+            cont = ret.cont;
+            return cont;
           });
           colIndex++;
         }
@@ -248,7 +249,7 @@ class Grid {
       mapNeighborhood: {
         get: () => {
           return (position, range, f, ctx) => {
-            iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
+            return iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
               var val = f.call(ctx, value, position, row, col, i, id);
               return {val, cont: true};
             }).rows;
@@ -278,7 +279,7 @@ class Grid {
       reduceNeighborhood: {
         get: () => {
           return (position, range, f, init, ctx) => {
-            iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
+            return iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
               var val = f.call(ctx, value, position, row, col, i, id);
               return {val, cont: true};
             }, init).accum;
@@ -308,7 +309,7 @@ class Grid {
       someNeighborhood: {
         get: () => {
           return (position, range, f, ctx) => {
-            iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
+            return iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
               var val = f.call(ctx, value, position, row, col, i, id);
               return {val: accum || val, cont: !val};
             }, false).accum;
@@ -368,15 +369,23 @@ class Grid {
                   if (nearest.length == k) {
                     if (i == 0) {
                       if (j > 0) {
-                        if (nearest[k - 1].dist < levelDistYP) return;
+                        if (nearest[k - 1].dist < levelDistYP) {
+                          return;
+                        }
                       } else if (j < 0) {
-                        if (nearest[k - 1].dist < levelDistYN) return;
+                        if (nearest[k - 1].dist < levelDistYN) {
+                          return;
+                        }
                       }
                     } else if (j == 0) {
                       if (i > 0) {
-                        if (nearest[k - 1].dist < levelDistXP) return;
+                        if (nearest[k - 1].dist < levelDistXP) {
+                          return;
+                        }
                       } else if (i < 0) {
-                        if (nearest[k - 1].dist < levelDistXN) return;
+                        if (nearest[k - 1].dist < levelDistXN) {
+                          return;
+                        }
                       }
                     } else {
                       let { corners } = cell;
@@ -390,8 +399,9 @@ class Grid {
                       if (
                         nearest[k - 1].dist <
                         p5.Vector.sub(corners[cornerI], center.position).mag()
-                      )
+                      ) {
                         return;
+                      }
                     }
                   }
                   checkCell(cell);

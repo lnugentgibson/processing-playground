@@ -55,7 +55,17 @@ function draw() {
 }
 
 function mouseWheel(event) {
-  zoom -= event.delta / 500;
+  if(false) {
+    zoom = max(zoom - event.delta / 1000, 0.1);
+  }
+  else {
+    if(event.delta < 0) {
+      zoom *= 0.875;
+    }
+    else {
+      zoom *= 8.0 / 7;
+    }
+  }
   return false;
 }
 
