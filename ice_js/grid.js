@@ -23,9 +23,9 @@ class Grid {
           maxY,
           corners: [
             createVector(minX, minY),
-            createVector(minX, minY),
+            createVector(maxX, minY),
             createVector(minX, maxY),
-            createVector(minX, maxY),
+            createVector(maxX, maxY),
           ],
           entities
         };
@@ -44,6 +44,71 @@ class Grid {
       var col = min(max(floor(position.x / cellWidth), -1), xCells);
       var row = min(max(floor(position.y / cellHeight), -1), yCells);
       return { col, row };
+    }
+    function iterate(f, init, ctx) {
+      var arr = [];
+      var accum = init;
+      index.every((entity, i) => {
+        let { val, cont } = f.call(ctx, accum, entity.value, entity.position, entity.row, entity.col, i, entity.id);
+        arr[i] = accum = val;
+        return cont;
+      });
+      return {
+        arr,
+        accum,
+      };
+    }
+    function iterateGrid(f, init, ctx) {
+      var rows = [];
+      var accum = init;
+      grid.every((row, i) => {
+        rows[i] = [];
+        return row.cells.every((cell, j) => {
+          rows[i][j] = [];
+          return cell.entities.every((entity, k) => {
+            let { val, cont } = f.call(ctx, accum, entity.value, entity.position, i - 1, j - 1, k, entity.id);
+            rows[i][j] = accum = val;
+            return cont;
+          });
+        });
+      });
+      return {
+        rows,
+        accum,
+      };
+    }
+    function iterateNeighborhood(position, range, f, init, ctx) {
+      let { col, row } = indexOf(position);
+      var rows = [];
+      var accum = init;
+      var cont = true;
+      var rowIndex = 0;
+      for (
+        var i = max(-1, row - range);
+        i <= min(yCells, row + range) && cont;
+        i++
+      ) {
+        rows[rowIndex] = [];
+        var colIndex = 0;
+        for (
+          var j = max(-1, col - range);
+          j <= min(xCells, col + range) && cont;
+          j++
+        ) {
+          rows[rowIndex][colIndex] = [];
+          grid[i + 1].cells[j + 1].entities.every((entity, k) => {
+            var ret = f.call(ctx, accum, entity.value, entity.position, i, j, k, entity.id);
+            rows[i][j] = accum = ret.val;
+            return cont = ret.cont;
+          });
+          colIndex++;
+        }
+        rowIndex++;
+      }
+      return {
+        rows,
+        accum,
+      };
     }
     Object.defineProperties(this, {
       length: {
@@ -119,189 +184,144 @@ class Grid {
         get: () => {
           return (id) => {
             var entity = index[id];
+            if(!entity) {
+              return false;
+            }
             delete index[id];
             var cell = grid[entity.row + 1].cells[entity.col + 1];
             cell.entities = cell.entities.filter((e) => e.id != id);
             len--;
+            return true;
           };
         }
       },
       forEach: {
         get: () => {
           return (f, ctx) => {
-            grid.forEach((row, i) =>
-              row.cells.forEach((cell, j) =>
-                cell.entities.forEach((entity, k) =>
-                  f.call(ctx, entity.value, entity.position, i, j, k, entity.id)
-                )
-              )
-            );
+            iterate((accum, value, position, row, col, i, id) => {
+              f.call(ctx, value, position, row, col, i, id);
+              return {cont: true};
+            });
+          };
+        }
+      },
+      forEachGrid: {
+        get: () => {
+          return (f, ctx) => {
+            iterateGrid((accum, value, position, row, col, i, id) => {
+              f.call(ctx, value, position, row, col, i, id);
+              return {cont: true};
+            });
           };
         }
       },
       forEachNeighborhood: {
         get: () => {
-          return (f, ctx, position, range) => {
-            let { col, row } = indexOf(position);
-            for (
-              var i = max(-1, row - range);
-              i <= min(yCells, row + range) && valid;
-              i++
-            ) {
-              for (
-                var j = max(-1, col - range);
-                j <= min(xCells, col + range) && valid;
-                j++
-              ) {
-                grid[i + 1].cells[j + 1].entities.forEach((entity, k) =>
-                  f.call(ctx, entity.value, entity.position, i, j, k, entity.id)
-                );
-              }
-            }
-            return;
+          return (position, range, f, ctx) => {
+            iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
+              f.call(ctx, value, position, row, col, i, id);
+              return {cont: true};
+            });
           };
         }
       },
       map: {
         get: () => {
           return (f, ctx) => {
-            return grid.reduce(
-              (m1, row, i) =>
-                m1.concat(
-                  row.cells.reduce(
-                    (m2, cell, j) =>
-                      m2.concat(
-                        cell.entities.map((entity, k) =>
-                          f.call(
-                            ctx,
-                            entity.value,
-                            entity.position,
-                            i,
-                            j,
-                            k,
-                            entity.id
-                          )
-                        )
-                      ),
-                    []
-                  )
-                ),
-              []
-            );
+            return iterate((accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, value, position, row, col, i, id);
+              return {val, cont: true};
+            }).arr;
+          };
+        }
+      },
+      mapGrid: {
+        get: () => {
+          return (f, ctx) => {
+            return iterateGrid((accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, value, position, row, col, i, id);
+              return {val, cont: true};
+            }).rows;
+          };
+        }
+      },
+      mapNeighborhood: {
+        get: () => {
+          return (position, range, f, ctx) => {
+            iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, value, position, row, col, i, id);
+              return {val, cont: true};
+            }).rows;
           };
         }
       },
       reduce: {
         get: () => {
-          return (f, start, ctx) => {
-            return grid.reduce(
-              (m1, row, i) =>
-                m1.concat(
-                  row.cells.reduce(
-                    (m2, cell, j) =>
-                      m2.concat(
-                        cell.entities.reduce(
-                          (accum, entity, k) =>
-                            f.call(
-                              ctx,
-                              accum,
-                              entity.value,
-                              i,
-                              j,
-                              k,
-                              entity.id
-                            ),
-                          start
-                        )
-                      ),
-                    []
-                  )
-                ),
-              []
-            );
+          return (f, init, ctx) => {
+            return iterate((accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, accum, value, position, row, col, i, id);
+              return {val, cont: true};
+            }, init).accum;
+          };
+        }
+      },
+      reduceGrid: {
+        get: () => {
+          return (f, init, ctx) => {
+            return iterate((accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, accum, value, position, row, col, i, id);
+              return {val, cont: true};
+            }, init).accum;
+          };
+        }
+      },
+      reduceNeighborhood: {
+        get: () => {
+          return (position, range, f, init, ctx) => {
+            iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, value, position, row, col, i, id);
+              return {val, cont: true};
+            }, init).accum;
           };
         }
       },
       some: {
         get: () => {
           return (f, ctx) => {
-            return grid.some((row, i) =>
-              row.cells.some((cell, j) =>
-                cell.entities.some((entity, k) =>
-                  f.call(ctx, entity.value, entity.position, i, j, k, entity.id)
-                )
-              )
-            );
+            return iterate((accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, value, position, row, col, i, id);
+              return {val: accum || val, cont: !val};
+            }, false).accum;
+          };
+        }
+      },
+      someGrid: {
+        get: () => {
+          return (f, ctx) => {
+            return iterate((accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, value, position, row, col, i, id);
+              return {val: accum || val, cont: !val};
+            }, false).accum;
           };
         }
       },
       someNeighborhood: {
         get: () => {
-          return (f, ctx, position, range) => {
-            if (position.x < 0 || position.x > width) {
-              return;
-            }
-            if (position.y < 0 || position.y > height) {
-              return;
-            }
-            let { col, row } = indexOf(position);
-            for (
-              var i = max(0, row - range);
-              i <= min(yCells - range, row + range);
-              i++
-            ) {
-              for (
-                var j = max(0, col - range);
-                j <= min(xCells - range, col + range);
-                j++
-              ) {
-                if (
-                  grid[i].cells[j].entities.some((entity, k) =>
-                    f.call(
-                      ctx,
-                      entity.value,
-                      entity.position,
-                      i,
-                      j,
-                      k,
-                      entity.id
-                    )
-                  )
-                ) {
-                  return true;
-                }
-              }
-            }
-            return false;
+          return (position, range, f, ctx) => {
+            iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
+              var val = f.call(ctx, value, position, row, col, i, id);
+              return {val: accum || val, cont: !val};
+            }, false).accum;
           };
         }
       },
       kNearest: {
         get: () => {
           return (id, k, print) => {
-            if (print)
-              console.log({
-                msg: "calling kNearest",
-                id,
-                k
-              });
             var center = index[id];
-            var centerCell = grid[center.row].cells[center.col];
+            var centerCell = grid[center.row + 1].cells[center.col + 1];
             var nearest = [];
-            if (print)
-              console.log({
-                msg: "initial state",
-                center,
-                centerCell,
-                nearest,
-                level
-              });
             function checkCell(cell) {
-              if (print)
-                console.log({
-                  msg: "calling checkCell",
-                  cell
-                });
               var dists = cell.entities
                 .filter((o) => o.id != center.id)
                 .map((entity) => {
@@ -316,14 +336,6 @@ class Grid {
                 .slice(0, k);
             }
             checkCell(centerCell);
-            if (print)
-              console.log({
-                msg: "centerCell checked",
-                center,
-                centerCell,
-                nearest,
-                level
-              });
             for (var level = 0; level < 10; level++) {
               var shiftX = cellWidth * (level - 1);
               var shiftY = cellHeight * (level - 1);
@@ -335,17 +347,6 @@ class Grid {
                 min(levelDistXN, levelDistXP),
                 min(levelDistYN, levelDistYP)
               );
-              if (print)
-                console.log({
-                  msg: "level loop start",
-                  center,
-                  centerCell,
-                  nearest,
-                  level,
-                  shiftX,
-                  shiftY,
-                  levelDist
-                });
               if (
                 nearest.length < k ||
                 (nearest.length > 0 &&
@@ -360,7 +361,7 @@ class Grid {
                   if (row < 0 || row >= yCells) {
                     return;
                   }
-                  var cell = grid[row].cells[col];
+                  var cell = grid[row + 1].cells[col + 1];
                   if (cell.entities.length == 0) {
                     return;
                   }
@@ -378,22 +379,17 @@ class Grid {
                         if (nearest[k - 1].dist < levelDistXN) return;
                       }
                     } else {
-                      let { corner } = cell;
+                      let { corners } = cell;
+                      var cornerI = 0;
                       if (i < 0) {
-                        corner = p5.Vector.add(
-                          corner,
-                          createVector(cellWidth, 0)
-                        );
+                        cornerI++;
                       }
                       if (j < 0) {
-                        corner = p5.Vector.add(
-                          corner,
-                          createVector(0, cellHeight)
-                        );
+                        cornerI += 2;
                       }
                       if (
                         nearest[k - 1].dist <
-                        p5.Vector.sub(corner, center.position).mag()
+                        p5.Vector.sub(corners[cornerI], center.position).mag()
                       )
                         return;
                     }

@@ -22,10 +22,9 @@ function PoissonDiscSampling(r, k, n) {
         }
         if (
           grid.someNeighborhood(
-            (v, p) => dist(c.x, c.y, p.x, p.y) < r,
-            null,
             c,
-            1
+            1,
+            (v, p) => dist(c.x, c.y, p.x, p.y) < r
           )
         ) {
           continue;

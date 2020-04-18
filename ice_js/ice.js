@@ -29,7 +29,10 @@ class Ice {
       .sort((a, b) => a.d - b.d);
     if (baseGrid.length > numBases) {
       d.slice(0, baseGrid.length - numBases).forEach((p) => {
-        baseGrid.remove(p.id);
+        if(!baseGrid.remove(p.id)) {
+          console.error(`unable to remove base with id ${p.id}`);
+          console.error(d);
+        }
       });
     }
     var bases = new Bases(baseGrid);
