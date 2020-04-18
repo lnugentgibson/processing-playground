@@ -13,6 +13,7 @@ $(() => {
 
 function setup() {
   createCanvas(resolution, resolution);
+  frameRate(24);
   ice = new Ice(6, /* numBases */ 16);
   camera = createVector(width / 2, height / 2);
   zoom = 1;

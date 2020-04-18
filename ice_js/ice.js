@@ -78,15 +78,19 @@ class Ice {
         get: () => {
           return () => {
             bases.update();
-            shipGrid.ids.forEach(id => {
+            var ids = shipGrid.ids;
+            var updateShip = id => {
               var ship = shipGrid.getValue(id);
               let {angle} = ship;
-              var v = 0.1;
+              var v = 0.5;
               var shift = createVector(v * cos(angle), v * sin(angle));
               var position = shipGrid.getPosition(id);
               position.add(shift);
               shipGrid.updatePosition(id, position);
-            });
+            };
+            for(var i = 0; i < 32; i++) {
+              updateShip(ids[i]);
+            }
           };
         },
       },

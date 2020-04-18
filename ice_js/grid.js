@@ -7,22 +7,33 @@ class Grid {
     var xCells = ceil(width / cellWidth);
     var yCells = ceil(height / cellHeight);
 
-    var grid = _.times(yCells, (row) => {
-      var y = row * cellHeight;
-      var cells = _.times(xCells, (col) => {
-        var x = col * cellWidth;
+    var grid = _.times(yCells + 2, (row) => {
+      var minY = row > 0 ? (row - 1) * cellHeight : undefined;
+      var maxY = row == yCells + 1 ? row * cellHeight : undefined;
+      var cells = _.times(xCells + 2, (col) => {
+        var minX = row > 0 ? (col - 1) * cellWidth : undefined;
+        var maxX = row == xCells + 1 ? col * cellWidth : undefined;
         var entities = [];
         return {
-          row,
-          col,
-          x,
-          position: createVector(x, y),
+          row: row - 1,
+          col: col - 1,
+          minX,
+          maxX,
+          minY,
+          maxY,
+          corners: [
+            createVector(minX, minY),
+            createVector(minX, minY),
+            createVector(minX, maxY),
+            createVector(minX, maxY),
+          ],
           entities
         };
       });
       return {
-        row,
-        y,
+        row: row - 1,
+        minY,
+        maxY,
         cells
       };
     });
@@ -30,14 +41,8 @@ class Grid {
     var len = 0;
 
     function indexOf(position) {
-      if (position.x < 0 || position.x > width) {
-        return;
-      }
-      if (position.y < 0 || position.y > height) {
-        return;
-      }
-      var col = floor(position.x / cellWidth);
-      var row = floor(position.y / cellHeight);
+      var col = min(max(floor(position.x / cellWidth), -1), xCells);
+      var row = min(max(floor(position.y / cellHeight), -1), yCells);
       return { col, row };
     }
     Object.defineProperties(this, {
@@ -45,32 +50,14 @@ class Grid {
         get: () => len
       },
       ids: {
-        get: () => grid.reduce(
-          (m1, row, i) =>
-            m1.concat(
-              row.cells.reduce(
-                (m2, cell, j) =>
-                  m2.concat(
-                    cell.entities.map(entity => entity.id)
-                  ),
-                []
-              )
-            ),
-          []
-        ),
+        get: () => index.filter(entity => entity).map(entity => entity.id),
       },
       push: {
         get: () => {
           return (value, position) => {
-            if (position.x < 0 || position.x > width) {
-              return;
-            }
-            if (position.y < 0 || position.y > height) {
-              return;
-            }
             let { col, row } = indexOf(position);
             var id = len;
-            var cell = grid[row].cells[col];
+            var cell = grid[row + 1].cells[col + 1];
             var entity = {
               col,
               row,
@@ -109,16 +96,20 @@ class Grid {
           return (id, position) => {
             var entity = index[id];
             let { col: oldCol, row: oldRow } = entity;
-            var oldCell = grid[oldRow].cells[oldCol];
-            let { col, row } = indexOf(position);
+            var oldCell = grid[oldRow + 1].cells[oldCol + 1];
+            var pindex = indexOf(position);
+            if(!pindex) {
+              return;
+            }
+            let { col, row } = pindex;
+            entity.position = position;
             if(oldRow != row || oldCol != col) {
               oldCell.entities = oldCell.entities.filter(entity => entity.id != id);
-              var cell = grid[row].cells[col];
+              var cell = grid[row + 1].cells[col + 1];
               cell.entities.push(entity);
               Object.apply(entity, {
                 row,
                 col,
-                position,
               });
             }
           };
@@ -129,7 +120,7 @@ class Grid {
           return (id) => {
             var entity = index[id];
             delete index[id];
-            var cell = grid[entity.row].cells[entity.col];
+            var cell = grid[entity.row + 1].cells[entity.col + 1];
             cell.entities = cell.entities.filter((e) => e.id != id);
             len--;
           };
@@ -151,24 +142,18 @@ class Grid {
       forEachNeighborhood: {
         get: () => {
           return (f, ctx, position, range) => {
-            if (position.x < 0 || position.x > width) {
-              return;
-            }
-            if (position.y < 0 || position.y > height) {
-              return;
-            }
             let { col, row } = indexOf(position);
             for (
-              var i = max(0, row - range);
-              i <= min(yCells - range, row + range) && valid;
+              var i = max(-1, row - range);
+              i <= min(yCells, row + range) && valid;
               i++
             ) {
               for (
-                var j = max(0, col - range);
-                j <= min(xCells - range, col + range) && valid;
+                var j = max(-1, col - range);
+                j <= min(xCells, col + range) && valid;
                 j++
               ) {
-                grid[i].cells[j].entities.forEach((entity, k) =>
+                grid[i + 1].cells[j + 1].entities.forEach((entity, k) =>
                   f.call(ctx, entity.value, entity.position, i, j, k, entity.id)
                 );
               }
