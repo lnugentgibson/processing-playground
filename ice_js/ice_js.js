@@ -13,11 +13,13 @@ $(() => {
 
 function setup() {
   createCanvas(resolution, resolution);
-  frameRate(24);
+  //frameRate(24);
   ice = new Ice(6, /* numBases */ 16);
   camera = createVector(width / 2, height / 2);
   zoom = 1;
 }
+
+var clicks = [];
 
 function draw() {
   push();
@@ -52,6 +54,16 @@ function draw() {
   text(`camera: ${camera.x}, ${camera.y}`, 5, 5);
   text(`zoom: ${zoom}`, 5, 20);
   //*/
+  clicks.forEach(click => {
+    noFill();
+    stroke(255, 255, 255, map(click.frames, 60, 0, 255, 0));
+    strokeWeight(2);
+    ellipseMode();
+    var r = map(click.frames, 60, 0, click.minRadius, click.maxRadius);
+    ellipse(click.position.x, click.position.y, r, r);
+    click.frames = click.frames - 1;
+  });
+  clicks = clicks.filter(click => click.frames);
 }
 
 function mouseWheel(event) {
@@ -74,6 +86,21 @@ var lastX = null, lastY = null;
 function mousePressed() {
   lastX = mouseX;
   lastY = mouseY;
+  return false;
+}
+
+function mouseClicked() {
+  clicks.push({
+    position: createVector(mouseX, mouseY),
+    maxFrames: 60,
+    frames: 60,
+    minRadius: 16,
+    maxRadius: 256,
+  });
+  if(mouseButton == LEFT) {
+    var target = createVector(camera.x + (mouseX - width / 2) / zoom, camera.y + (mouseY - height / 2) / zoom);
+    ice.setTarget(target);
+  }
   return false;
 }
 

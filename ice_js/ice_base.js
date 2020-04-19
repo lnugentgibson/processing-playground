@@ -1,15 +1,15 @@
 class Base {
   constructor(id, position) {
     var owner;
-    var health = random(100);
-    var angle = random(360);
+    var health = 100;
+    var angle = random(TWO_PI);
     var direction = random(1) < 0.5;
     Object.defineProperties(this, {
       id: {
         get: () => id
       },
       position: {
-        get: () => position
+        get: () => position.copy()
       },
       owner: {
         get: () => owner,
@@ -53,9 +53,9 @@ class Base {
     ellipseMode(RADIUS);
     strokeCap(SQUARE);
     if (health > 99.5) {
-      ellipse(0, 0, 25, 25);
+      ellipse(0, 0, 32, 32);
     } else {
-      arc(0, 0, 25, 25, 0, map(health, 0, 100, 0, TWO_PI));
+      arc(0, 0, 32, 32, 0, map(health, 0, 100, 0, TWO_PI));
     }
     rotate(angle);
     strokeWeight(2);

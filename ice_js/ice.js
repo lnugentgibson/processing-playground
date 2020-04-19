@@ -5,13 +5,15 @@ class Ice {
     var ships;
     var players = _.times(numPlayers, (i) => {
       var player = {
-        id: i
+        id: i,
+        control: 'random',
       };
       return player;
     });
     ["red", "green", "blue", "orange", "yellow", "purple"].forEach((c, i) => {
       players[i].color = c;
     });
+    players[0].control = 'user';
     
     var baseGrid = PoissonDiscSampling(128, 10, 2);
     var d = baseGrid
@@ -44,11 +46,14 @@ class Ice {
     var shipGrid = new Grid(width, height, 16, 16);
     bases.forEachBase(base => {
       var owner = base.owner;
-      _.times(8, () => {
+      _.times(8, i => {
+        var angle = i * TWO_PI / 8;
         shipGrid.push({
+          base,
           owner,
-          angle: random(360),
-        }, createVector(random(width), random(height)));
+          angle,
+          state: 'orbit',
+        }, createVector(base.position.x + 24 * cos(angle), base.position.y + 24 * sin(angle)));
       });
     });
     
@@ -59,8 +64,8 @@ class Ice {
             bases.draw();
             shipGrid.forEach((ship, position) => {
               let {
-                angle,
                 owner,
+                angle,
               } = ship;
               noStroke();
               if (owner == undefined) {
@@ -84,15 +89,89 @@ class Ice {
             var ids = shipGrid.ids;
             var updateShip = id => {
               var ship = shipGrid.getValue(id);
-              let {angle} = ship;
+              let {
+                base,
+                angle,
+                state,
+                target,
+                direction,
+                end,
+              } = ship;
               var v = 0.5;
-              var shift = createVector(v * cos(angle), v * sin(angle));
               var position = shipGrid.getPosition(id);
-              position.add(shift);
-              shipGrid.updatePosition(id, position);
+              if(state == 'orbit') {
+                ship.angle = angle = angle + v / 24;
+                position = p5.Vector.add(base.position, createVector(24 * cos(angle), 24 * sin(angle)));
+                shipGrid.updatePosition(id, position);
+              }
+              else if(state == 'flyby') {
+                ship.angle = angle = angle + direction * v / 24;
+                position = p5.Vector.add(base.position, createVector(24 * cos(angle), 24 * sin(angle)));
+                shipGrid.updatePosition(id, position);
+                if((end - angle) * direction < 0) {
+                  ship.state = 'move';
+                }
+              }
+              else if(state == 'move') {
+                var diff = p5.Vector.sub(target, position);
+                ship.angle = angle = diff.heading();
+                var shift = createVector(v * cos(angle), v * sin(angle));
+                position.add(shift);
+                shipGrid.updatePosition(id, position);
+              }
             };
             ids.forEach(id => {
               updateShip(id);
+            });
+          };
+        },
+      },
+      setTarget: {
+        get: () => {
+          return target => {
+            players.forEach(player => {
+              if(player.control != 'user') {
+                return;
+              }
+              shipGrid.forEach((ship, position) => {
+                let {
+                  base,
+                  owner,
+                  angle,
+                  state,
+                } = ship;
+                if(owner != player) {
+                  return;
+                }
+                if(state == 'orbit') {
+                  var diff = p5.Vector.sub(target, position);
+                  var dir = diff.copy();
+                  dir.normalize();
+                  var head = createVector(cos(angle), sin(angle));
+                  if(dir.dot(head) > 0) {
+                    ship.state = 'move';
+                    ship.target = target;
+                  }
+                  else {
+                    ship.state = 'flyby';
+                    var radius = p5.Vector.sub(position, base.position);
+                    var d = dir.dot(radius);
+                    radius.x -= d * dir.x;
+                    radius.y -= d * dir.y;
+                    ship.target = target;
+                    ship.end = radius.heading();
+                    var ad = (TWO_PI - ship.end - angle) % TWO_PI;
+                    if(ad > PI) {
+                      ad -= TWO_PI;
+                    }
+                    ship.direction = ad > 0 ? 1 : -1;
+                  }
+                }
+                else if(state == 'move' || state == 'idle') {
+                  ship.state = 'move';
+                  ship.target = target;
+                }
+              });
             });
           };
         },
