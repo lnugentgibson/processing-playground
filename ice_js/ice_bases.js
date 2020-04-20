@@ -104,7 +104,7 @@ class Bases {
     });
 
     bases.forEach((source) => {
-      var ns = grid.kNearest(source.id, 3 + random(3));
+      var ns = grid.kNearest(source.id, 3 + lib.random(3));
       ns.forEach((n) => {
         var row = adjacency[source.id];
         if (!row) {
@@ -114,7 +114,7 @@ class Bases {
         if (row[dest.id]) {
           return;
         }
-        var direction = random() < 0.5;
+        var direction = lib.random() < 0.5;
         row[dest.id] = direction ? 1 : -1;
         row = adjacency[dest.id];
         if (!row) {
