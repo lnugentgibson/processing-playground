@@ -1,10 +1,74 @@
 class Base {
-  constructor(id, position) {
+  constructor(lib, id, position) {
+    if(!lib) {
+      lib = {
+        /*global TWO_PI*/
+        TWO_PI,
+        /*global RADIUS*/
+        RADIUS,
+        /*global SQUARE*/
+        SQUARE,
+        /*global CENTER*/
+        CENTER,
+        /*global NORMAL*/
+        NORMAL,
+        /*global floor*/
+        floor,
+        /*global min*/
+        min,
+        /*global random*/
+        random,
+        /*global map*/
+        map,
+        /*global noStroke*/
+        noStroke,
+        /*global stroke*/
+        stroke,
+        /*global strokeWeight*/
+        strokeWeight,
+        /*global strokeCap*/
+        strokeCap,
+        /*global noFill*/
+        noFill,
+        /*global fill*/
+        fill,
+        /*global rectMode*/
+        rectMode,
+        /*global ellipseMode*/
+        ellipseMode,
+        /*global square*/
+        square,
+        /*global ellipse*/
+        ellipse,
+        /*global arc*/
+        arc,
+        /*global textAlign*/
+        textAlign,
+        /*global textStyle*/
+        textStyle,
+        /*global textSize*/
+        textSize,
+        /*global text*/
+        text,
+        /*global translate*/
+        translate,
+        /*global rotate*/
+        rotate,
+        /*global push*/
+        push,
+        /*global pop*/
+        pop,
+      };
+    }
+    
     var owner;
     var health = 100;
-    var angle = random(TWO_PI);
-    var direction = random(1) < 0.5;
+    var angle = lib.random(lib.TWO_PI);
+    var direction = lib.random(1) < 0.5;
     Object.defineProperties(this, {
+      lib: {
+        get: () => lib
+      },
       id: {
         get: () => id
       },
@@ -32,7 +96,7 @@ class Base {
             if (n == undefined) {
               n = 1;
             }
-            health = min(100, health + n * 0.01);
+            health = lib.min(100, health + n * 0.01);
             angle = angle + n * 0.01 * (direction ? 1 : -1);
           };
         }
@@ -40,38 +104,37 @@ class Base {
     });
   }
   draw() {
-    let { position, owner, health, angle, direction, outs } = this;
+    let { lib, position, owner, health, angle } = this;
     if (owner == undefined) {
-      stroke(255);
+      lib.stroke(255);
     } else {
-      stroke(owner.color);
+      lib.stroke(owner.color);
     }
-    push();
-    translate(position.x, position.y);
-    strokeWeight(5);
-    noFill();
-    ellipseMode(RADIUS);
-    strokeCap(SQUARE);
+    lib.push();
+    lib.translate(position.x, position.y);
+    lib.strokeWeight(5);
+    lib.noFill();
+    lib.ellipseMode(lib.RADIUS);
+    lib.strokeCap(lib.SQUARE);
     if (health > 99.5) {
-      ellipse(0, 0, 32, 32);
+      lib.ellipse(0, 0, 32, 32);
     } else {
-      arc(0, 0, 32, 32, 0, map(health, 0, 100, 0, TWO_PI));
+      lib.arc(0, 0, 32, 32, 0, lib.map(health, 0, 100, 0, TWO_PI));
     }
-    rotate(angle);
-    strokeWeight(2);
-    rectMode(CENTER);
-    square(0, 0, 25);
-    noStroke();
+    lib.rotate(angle);
+    lib.strokeWeight(2);
+    lib.rectMode(lib.CENTER);
+    lib.square(0, 0, 25);
+    lib.noStroke();
     if (owner == undefined) {
-      fill(255);
+      lib.fill(255);
     } else {
-      fill(owner.color);
+      lib.fill(owner.color);
     }
-    strokeWeight(0.5);
-    textAlign(CENTER, CENTER);
-    textSize(12);
-    textStyle(NORMAL);
-    text(floor(health), 0, 0);
-    pop();
+    lib.textAlign(lib.CENTER, lib.CENTER);
+    lib.textSize(12);
+    lib.textStyle(lib.NORMAL);
+    lib.text(lib.floor(health), 0, 0);
+    lib.pop();
   }
 }

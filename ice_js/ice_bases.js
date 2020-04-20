@@ -1,8 +1,29 @@
+/*global p5*/
+/*global dashedLine*/
+/*global Base*/
+
 class Bases {
-  constructor(grid) {
+  constructor(lib, grid) {
+    if(!lib) {
+      lib = {
+        /*global SQUARE*/
+        SQUARE,
+        /*global floor*/
+        floor,
+        /*global random*/
+        random,
+        /*global stroke*/
+        stroke,
+        /*global strokeWeight*/
+        strokeWeight,
+        /*global strokeCap*/
+        strokeCap,
+      };
+    }
+    
     var bases = [];
     grid.forEach((b, p, row, col, i, id) => {
-      bases[id] = new Base(id, p);
+      bases[id] = new Base(lib, id, p);
     });
     var adjacency = [];
     var edges = [];
@@ -15,6 +36,9 @@ class Bases {
       });
     }
     Object.defineProperties(this, {
+      lib: {
+        get: () => lib
+      },
       forEachBase: {
         get: () => forEachBase
       },
@@ -25,7 +49,7 @@ class Bases {
         get: () => {
           return () => {
             var unowned = bases.filter((base) => base.owner == undefined);
-            return unowned[floor(random(unowned.length))];
+            return unowned[lib.floor(lib.random(unowned.length))];
           };
         }
       }
@@ -72,14 +96,15 @@ class Bases {
     this.forEachBase((base) => {
       base.draw();
     });
-    strokeCap(SQUARE);
+    let {lib} = this;
+    lib.strokeCap(lib.SQUARE);
     this.forEachEdge((edge, source, dest) => {
       if (source.owner == undefined) {
-        stroke(255);
+        lib.stroke(255);
       } else {
-        stroke(source.owner.color);
+        lib.stroke(source.owner.color);
       }
-      strokeWeight(2);
+      lib.strokeWeight(2);
       var sp = source.position.copy();
       var dp = dest.position.copy();
       var diff = p5.Vector.sub(dp, sp);

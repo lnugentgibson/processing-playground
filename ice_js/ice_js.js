@@ -1,3 +1,6 @@
+/*global $*/
+/*global Ice*/
+
 var resolution = 1024;
 
 var ice;
@@ -14,7 +17,7 @@ $(() => {
 function setup() {
   createCanvas(resolution, resolution);
   //frameRate(24);
-  ice = new Ice(6, /* numBases */ 16);
+  ice = new Ice(null, 6, /* numBases */ 16);
   camera = createVector(width / 2, height / 2);
   zoom = 1;
 }

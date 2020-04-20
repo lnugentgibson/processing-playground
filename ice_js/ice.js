@@ -1,7 +1,11 @@
+/*global PoissonDiscSampling*/
+/*global Grid*/
+/*global Bases*/
+
 var players, ships;
 
 class Ice {
-  constructor(numPlayers, numBases) {
+  constructor(lib, numPlayers, numBases) {
     var ships;
     var players = _.times(numPlayers, (i) => {
       var player = {
@@ -15,7 +19,7 @@ class Ice {
     });
     players[0].control = 'user';
     
-    var baseGrid = PoissonDiscSampling(128, 10, 2);
+    var baseGrid = PoissonDiscSampling(null, 128, 10, 2);
     var d = baseGrid
       .map((v, p, row, col, i, id) => {
         let { x, y } = p;
@@ -37,7 +41,7 @@ class Ice {
         }
       });
     }
-    var bases = new Bases(baseGrid);
+    var bases = new Bases(null, baseGrid);
     players.forEach(player => {
       var base = bases.unownedBase();
       base.owner = player;

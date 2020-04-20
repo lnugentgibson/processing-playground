@@ -3,33 +3,27 @@
 
 class Grid {
   constructor(lib, width, height, cellWidth, cellHeight) {
-    var p5_floor, p5_ceil, p5_min, p5_max, p5_createVector;
-    if(lib) {
-      p5_floor = lib.floor;
-      p5_ceil = lib.ceil;
-      p5_min = lib.min;
-      p5_max = lib.max;
-      p5_createVector = lib.createVector;
-    }
-    else {
-      /*global floor*/
-      p5_floor = floor;
-      /*global ceil*/
-      p5_ceil = ceil;
-      /*global min*/
-      p5_min = min;
-      /*global max*/
-      p5_max = max;
-      /*global createVector*/
-      p5_createVector = createVector;
+    if(!lib) {
+      lib = {
+        /*global floor*/
+        floor,
+        /*global ceil*/
+        ceil,
+        /*global min*/
+        min,
+        /*global max*/
+        max,
+        /*global createVector*/
+        createVector,
+      };
     }
     
     if (cellHeight == undefined) {
       cellHeight = cellWidth;
     }
 
-    var xCells = p5_ceil(width / cellWidth);
-    var yCells = p5_ceil(height / cellHeight);
+    var xCells = lib.ceil(width / cellWidth);
+    var yCells = lib.ceil(height / cellHeight);
 
     var grid = _.times(yCells + 2, (row) => {
       var minY = row > 0 ? (row - 1) * cellHeight : undefined;
@@ -46,10 +40,10 @@ class Grid {
           minY,
           maxY,
           corners: [
-            p5_createVector(minX, minY),
-            p5_createVector(maxX, minY),
-            p5_createVector(minX, maxY),
-            p5_createVector(maxX, maxY),
+            lib.createVector(minX, minY),
+            lib.createVector(maxX, minY),
+            lib.createVector(minX, maxY),
+            lib.createVector(maxX, maxY),
           ],
           entities
         };
@@ -65,8 +59,8 @@ class Grid {
     var len = 0;
 
     function indexOf(position) {
-      var col = p5_min(p5_max(p5_floor(position.x / cellWidth), -1), xCells);
-      var row = p5_min(p5_max(p5_floor(position.y / cellHeight), -1), yCells);
+      var col = lib.min(lib.max(lib.floor(position.x / cellWidth), -1), xCells);
+      var row = lib.min(lib.max(lib.floor(position.y / cellHeight), -1), yCells);
       var offset = p5.Vector.sub(position, grid[row + 1].cells[col + 1].corners[0]);
       return { col, row, offset };
     }
@@ -137,15 +131,15 @@ class Grid {
       var cont = true;
       var rowIndex = 0;
       for (
-        var i = p5_max(-1, row - range);
-        i <= p5_min(yCells, row + range) && cont;
+        var i = lib.max(-1, row - range);
+        i <= lib.min(yCells, row + range) && cont;
         i++
       ) {
         rows[rowIndex] = [];
         var colIndex = 0;
         for (
-          var j = p5_max(-1, col - range);
-          j <= p5_min(xCells, col + range) && cont;
+          var j = lib.max(-1, col - range);
+          j <= lib.min(xCells, col + range) && cont;
           j++
         ) {
           rows[rowIndex][colIndex] = [];
@@ -171,15 +165,15 @@ class Grid {
       var cont = true;
       var rowIndex = 0;
       for (
-        var i = p5_max(-1, row - range);
-        i <= p5_min(yCells, row + range) && cont;
+        var i = lib.max(-1, row - range);
+        i <= lib.min(yCells, row + range) && cont;
         i++
       ) {
         rows[rowIndex] = [];
         var colIndex = 0;
         for (
-          var j = p5_max(-1, col - range);
-          j <= p5_min(xCells, col + range) && cont;
+          var j = lib.max(-1, col - range);
+          j <= lib.min(xCells, col + range) && cont;
           j++
         ) {
           rows[rowIndex][colIndex] = [];
@@ -431,9 +425,9 @@ class Grid {
               var levelDistXP = shiftX + cellWidth - center.offset.x;
               var levelDistYN = shiftY + center.offset.y;
               var levelDistYP = shiftY + cellHeight - center.offset.y;
-              var levelDist = p5_min(
-                p5_min(levelDistXN, levelDistXP),
-                p5_min(levelDistYN, levelDistYP)
+              var levelDist = lib.min(
+                lib.min(levelDistXN, levelDistXP),
+                lib.min(levelDistYN, levelDistYP)
               );
               if (
                 nearest.length < k ||
@@ -441,8 +435,8 @@ class Grid {
                   levelDist < nearest[nearest.length - 1].dist)
               ) {
                 var neighberCell = (i, j) => {
-                  var col = p5_min(p5_max(center.col + i, -1), xCells);
-                  var row = p5_min(p5_max(center.row + j, -1), yCells);
+                  var col = lib.min(lib.max(center.col + i, -1), xCells);
+                  var row = lib.min(lib.max(center.row + j, -1), yCells);
                   var cell = grid[row + 1].cells[col + 1];
                   if (cell.entities.length == 0) {
                     return;
@@ -481,7 +475,3 @@ class Grid {
     });
   }
 }
-
-//if(module) {
-//  module.exports = Grid;
-//}
