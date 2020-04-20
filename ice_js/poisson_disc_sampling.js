@@ -1,5 +1,5 @@
 function PoissonDiscSampling(r, k, n) {
-  var grid = new Grid(width, height, floor(r / sqrt(n)));
+  var grid = new Grid(null, width, height, floor(r / sqrt(n)));
   var initial = grid.push({active: true}, createVector(random(width), random(height)));
   var active = [initial];
   while (active.length) {

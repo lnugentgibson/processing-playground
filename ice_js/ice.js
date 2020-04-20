@@ -43,7 +43,7 @@ class Ice {
       base.owner = player;
     });
     
-    var shipGrid = new Grid(width, height, 16, 16);
+    var shipGrid = new Grid(null, width, height, 16, 16);
     bases.forEachBase(base => {
       var owner = base.owner;
       _.times(8, i => {

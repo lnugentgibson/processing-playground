@@ -1,11 +1,35 @@
+/*global _*/
+/*global p5*/
+
 class Grid {
-  constructor(width, height, cellWidth, cellHeight) {
+  constructor(lib, width, height, cellWidth, cellHeight) {
+    var p5_floor, p5_ceil, p5_min, p5_max, p5_createVector;
+    if(lib) {
+      p5_floor = lib.floor;
+      p5_ceil = lib.ceil;
+      p5_min = lib.min;
+      p5_max = lib.max;
+      p5_createVector = lib.createVector;
+    }
+    else {
+      /*global floor*/
+      p5_floor = floor;
+      /*global ceil*/
+      p5_ceil = ceil;
+      /*global min*/
+      p5_min = min;
+      /*global max*/
+      p5_max = max;
+      /*global createVector*/
+      p5_createVector = createVector;
+    }
+    
     if (cellHeight == undefined) {
       cellHeight = cellWidth;
     }
 
-    var xCells = ceil(width / cellWidth);
-    var yCells = ceil(height / cellHeight);
+    var xCells = p5_ceil(width / cellWidth);
+    var yCells = p5_ceil(height / cellHeight);
 
     var grid = _.times(yCells + 2, (row) => {
       var minY = row > 0 ? (row - 1) * cellHeight : undefined;
@@ -22,10 +46,10 @@ class Grid {
           minY,
           maxY,
           corners: [
-            createVector(minX, minY),
-            createVector(maxX, minY),
-            createVector(minX, maxY),
-            createVector(maxX, maxY),
+            p5_createVector(minX, minY),
+            p5_createVector(maxX, minY),
+            p5_createVector(minX, maxY),
+            p5_createVector(maxX, maxY),
           ],
           entities
         };
@@ -41,9 +65,38 @@ class Grid {
     var len = 0;
 
     function indexOf(position) {
-      var col = min(max(floor(position.x / cellWidth), -1), xCells);
-      var row = min(max(floor(position.y / cellHeight), -1), yCells);
-      return { col, row };
+      var col = p5_min(p5_max(p5_floor(position.x / cellWidth), -1), xCells);
+      var row = p5_min(p5_max(p5_floor(position.y / cellHeight), -1), yCells);
+      var offset = p5.Vector.sub(position, grid[row + 1].cells[col + 1].corners[0]);
+      return { col, row, offset };
+    }
+    function minCellDist(cell, position) {
+      let { row, col, offset } = indexOf(position);
+      if (cell.col == col) {
+        if (cell.row == row) {
+          return 0;
+        } else if (cell.row > row) {
+          return cellHeight * (cell.row - row - 1) + cellHeight - offset.y;
+        } else if (cell.row < row) {
+          return cellHeight * (row - cell.row - 1) + offset.y;
+        }
+      } else if (cell.row == row) {
+        if (cell.col > col) {
+          return cellWidth * (cell.col - col - 1) + cellWidth - offset.x;
+        } else if (cell.col < col) {
+          return cellWidth * (col - cell.col - 1) + offset.x;
+        }
+      } else {
+        let { corners } = cell;
+        var cornerI = 0;
+        if (cell.col < col) {
+          cornerI++;
+        }
+        if (cell.row < row) {
+          cornerI += 2;
+        }
+        return p5.Vector.sub(corners[cornerI], position).mag();
+      }
     }
     function iterate(f, init, ctx) {
       var arr = [];
@@ -84,15 +137,49 @@ class Grid {
       var cont = true;
       var rowIndex = 0;
       for (
-        var i = max(-1, row - range);
-        i <= min(yCells, row + range) && cont;
+        var i = p5_max(-1, row - range);
+        i <= p5_min(yCells, row + range) && cont;
         i++
       ) {
         rows[rowIndex] = [];
         var colIndex = 0;
         for (
-          var j = max(-1, col - range);
-          j <= min(xCells, col + range) && cont;
+          var j = p5_max(-1, col - range);
+          j <= p5_min(xCells, col + range) && cont;
+          j++
+        ) {
+          rows[rowIndex][colIndex] = [];
+          grid[i + 1].cells[j + 1].entities.every((entity, k) => {
+            var ret = f.call(ctx, accum, entity.value, entity.position, i, j, k, entity.id);
+            rows[rowIndex][colIndex][k] = accum = ret.val;
+            cont = ret.cont;
+            return cont;
+          });
+          colIndex++;
+        }
+        rowIndex++;
+      }
+      return {
+        rows,
+        accum,
+      };
+    }
+    function iterateDistance(position, range, f, init, ctx) {
+      let { col, row } = indexOf(position);
+      var rows = [];
+      var accum = init;
+      var cont = true;
+      var rowIndex = 0;
+      for (
+        var i = p5_max(-1, row - range);
+        i <= p5_min(yCells, row + range) && cont;
+        i++
+      ) {
+        rows[rowIndex] = [];
+        var colIndex = 0;
+        for (
+          var j = p5_max(-1, col - range);
+          j <= p5_min(xCells, col + range) && cont;
           j++
         ) {
           rows[rowIndex][colIndex] = [];
@@ -344,9 +431,9 @@ class Grid {
               var levelDistXP = shiftX + cellWidth - center.offset.x;
               var levelDistYN = shiftY + center.offset.y;
               var levelDistYP = shiftY + cellHeight - center.offset.y;
-              var levelDist = min(
-                min(levelDistXN, levelDistXP),
-                min(levelDistYN, levelDistYP)
+              var levelDist = p5_min(
+                p5_min(levelDistXN, levelDistXP),
+                p5_min(levelDistYN, levelDistYP)
               );
               if (
                 nearest.length < k ||
@@ -355,54 +442,13 @@ class Grid {
               ) {
                 var neighberCell = (i, j) => {
                   var col = center.col + i;
-                  if (col < 0 || col >= xCells) {
-                    return;
-                  }
                   var row = center.row + j;
-                  if (row < 0 || row >= yCells) {
-                    return;
-                  }
                   var cell = grid[row + 1].cells[col + 1];
                   if (cell.entities.length == 0) {
                     return;
                   }
-                  if (nearest.length == k) {
-                    if (i == 0) {
-                      if (j > 0) {
-                        if (nearest[k - 1].dist < levelDistYP) {
-                          return;
-                        }
-                      } else if (j < 0) {
-                        if (nearest[k - 1].dist < levelDistYN) {
-                          return;
-                        }
-                      }
-                    } else if (j == 0) {
-                      if (i > 0) {
-                        if (nearest[k - 1].dist < levelDistXP) {
-                          return;
-                        }
-                      } else if (i < 0) {
-                        if (nearest[k - 1].dist < levelDistXN) {
-                          return;
-                        }
-                      }
-                    } else {
-                      let { corners } = cell;
-                      var cornerI = 0;
-                      if (i < 0) {
-                        cornerI++;
-                      }
-                      if (j < 0) {
-                        cornerI += 2;
-                      }
-                      if (
-                        nearest[k - 1].dist <
-                        p5.Vector.sub(corners[cornerI], center.position).mag()
-                      ) {
-                        return;
-                      }
-                    }
+                  if (nearest.length == k && nearest[k - 1].dist < minCellDist(cell, center.position)) {
+                    return;
                   }
                   checkCell(cell);
                 };
@@ -434,4 +480,8 @@ class Grid {
       }
     });
   }
+}
+
+if(module) {
+  module.exports = Grid;
 }
