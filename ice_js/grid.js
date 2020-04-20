@@ -441,8 +441,8 @@ class Grid {
                   levelDist < nearest[nearest.length - 1].dist)
               ) {
                 var neighberCell = (i, j) => {
-                  var col = center.col + i;
-                  var row = center.row + j;
+                  var col = p5_min(p5_max(center.col + i, -1), xCells);
+                  var row = p5_min(p5_max(center.row + j, -1), yCells);
                   var cell = grid[row + 1].cells[col + 1];
                   if (cell.entities.length == 0) {
                     return;
@@ -482,6 +482,6 @@ class Grid {
   }
 }
 
-if(module) {
-  module.exports = Grid;
-}
+//if(module) {
+//  module.exports = Grid;
+//}
