@@ -8,6 +8,12 @@ function PoissonDiscSampling(lib, r, k, n) {
       PI,
       /*global floor*/
       floor,
+      /*global ceil*/
+      ceil,
+      /*global min*/
+      min,
+      /*global max*/
+      max,
       /*global sqrt*/
       sqrt,
       /*global cos*/
@@ -31,8 +37,8 @@ function PoissonDiscSampling(lib, r, k, n) {
     });
   }
   
-  var grid = new Grid(lib, lib.width(), lib.height(), lib.floor(r / lib.sqrt(n)));
-  var initial = grid.push({active: true}, lib.createVector(lib.random(lib.width()), lib.random(lib.height())));
+  var grid = new Grid(lib, lib.width, lib.height, lib.floor(r / lib.sqrt(n)));
+  var initial = grid.push({active: true}, lib.createVector(lib.random(lib.width), lib.random(lib.height)));
   var active = [initial];
   while (active.length) {
     for (var iteration = 0; iteration < 20 && active.length; iteration++) {
@@ -46,10 +52,10 @@ function PoissonDiscSampling(lib, r, k, n) {
         var m = lib.random(r, 2 * r);
         var c = lib.createVector(m * lib.cos(a), m * lib.sin(a));
         c.add(currentPosition);
-        if (c.x < 0 || c.x >= lib.width()) {
+        if (c.x < 0 || c.x >= lib.width) {
           continue;
         }
-        if (c.y < 0 || c.y >= lib.height()) {
+        if (c.y < 0 || c.y >= lib.height) {
           continue;
         }
         if (

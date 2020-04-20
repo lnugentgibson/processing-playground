@@ -6,18 +6,66 @@ class Bases {
   constructor(lib, grid) {
     if(!lib) {
       lib = {
+        /*global TWO_PI*/
+        TWO_PI,
+        /*global RADIUS*/
+        RADIUS,
         /*global SQUARE*/
         SQUARE,
+        /*global CENTER*/
+        CENTER,
+        /*global NORMAL*/
+        NORMAL,
         /*global floor*/
         floor,
+        /*global min*/
+        min,
+        /*global max*/
+        max,
         /*global random*/
         random,
+        /*global map*/
+        map,
+        /*global noStroke*/
+        noStroke,
         /*global stroke*/
         stroke,
         /*global strokeWeight*/
         strokeWeight,
         /*global strokeCap*/
         strokeCap,
+        /*global noFill*/
+        noFill,
+        /*global fill*/
+        fill,
+        /*global rectMode*/
+        rectMode,
+        /*global ellipseMode*/
+        ellipseMode,
+        /*global line*/
+        line,
+        /*global square*/
+        square,
+        /*global ellipse*/
+        ellipse,
+        /*global arc*/
+        arc,
+        /*global textAlign*/
+        textAlign,
+        /*global textStyle*/
+        textStyle,
+        /*global textSize*/
+        textSize,
+        /*global text*/
+        text,
+        /*global translate*/
+        translate,
+        /*global rotate*/
+        rotate,
+        /*global push*/
+        push,
+        /*global pop*/
+        pop,
       };
     }
     
@@ -114,7 +162,7 @@ class Bases {
       shift.setMag(32);
       sp.add(shift);
       dp.sub(shift);
-      dashedLine(sp, dp, [8, 8], edge.offset);
+      dashedLine(lib, sp, dp, [8, 8], edge.offset);
       edge.offset = (edge.offset + 0.1) % 16;
     });
   }
