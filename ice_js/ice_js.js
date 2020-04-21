@@ -1,4 +1,5 @@
 /*global $*/
+/*global p5*/
 /*global Ice*/
 
 const ice_p5_def = ( p ) => {
@@ -8,6 +9,13 @@ const ice_p5_def = ( p ) => {
   var ice;
   
   var camera, zoom;
+
+  $(() => {
+    $("#button").click(() => {
+      console.log("#button.click()");
+      ice = new Ice(6, 16);
+    });
+  });
 
   p.setup = function() {
     p.createCanvas(resolution, resolution);
@@ -66,7 +74,7 @@ const ice_p5_def = ( p ) => {
 
   p.mouseWheel = function(event) {
     if(false) {
-      zoom = max(zoom - event.delta / 1000, 0.1);
+      zoom = p.max(zoom - event.delta / 1000, 0.1);
     }
     else {
       if(event.delta < 0) {
@@ -89,21 +97,21 @@ const ice_p5_def = ( p ) => {
   
   p.mouseClicked = function() {
     clicks.push({
-      position: createVector(p.mouseX, p.mouseY),
+      position: p.createVector(p.mouseX, p.mouseY),
       maxFrames: 60,
       frames: 60,
       minRadius: 16,
       maxRadius: 256,
     });
-    if(p.mouseButton == LEFT) {
-      var target = createVector(camera.x + (p.mouseX - p.width / 2) / zoom, camera.y + (p.mouseY - p.height / 2) / zoom);
+    if(p.mouseButton == p.LEFT) {
+      var target = p.createVector(camera.x + (p.mouseX - p.width / 2) / zoom, camera.y + (p.mouseY - p.height / 2) / zoom);
       ice.setTarget(target);
     }
     return false;
   };
   
   p.mouseDragged = function() {
-    if(p.mouseButton == CENTER) {
+    if(p.mouseButton == p.CENTER) {
       camera.x -= (p.mouseX - lastX) / zoom;
       camera.y -= (p.mouseY - lastY) / zoom;
       lastX = p.mouseX;
@@ -113,4 +121,4 @@ const ice_p5_def = ( p ) => {
   };
 };
 
-let ice_p5 = new p5(ice_p5_def);
+/* let ice_p5 = */ new p5(ice_p5_def);
