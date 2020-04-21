@@ -110,7 +110,7 @@ class Ice {
               }
               else if(state == 'flyby') {
                 ship.angle = angle = angle + direction * v / 24;
-                position = p5.Vector.add(base.position, createVector(24 * lib.cos(angle), 24 * lib.sin(angle)));
+                position = p5.Vector.add(base.position, lib.createVector(24 * lib.cos(angle), 24 * lib.sin(angle)));
                 shipGrid.updatePosition(id, position);
                 if((end - angle) * direction < 0) {
                   ship.state = 'move';
@@ -151,7 +151,7 @@ class Ice {
                   var diff = p5.Vector.sub(target, position);
                   var dir = diff.copy();
                   dir.normalize();
-                  var head = createVector(cos(angle), sin(angle));
+                  var head = lib.createVector(lib.cos(angle), lib.sin(angle));
                   if(dir.dot(head) > 0) {
                     ship.state = 'move';
                     ship.target = target;
@@ -164,9 +164,9 @@ class Ice {
                     radius.y -= d * dir.y;
                     ship.target = target;
                     ship.end = radius.heading();
-                    var ad = (TWO_PI - ship.end - angle) % TWO_PI;
-                    if(ad > PI) {
-                      ad -= TWO_PI;
+                    var ad = (lib.TWO_PI - ship.end - angle) % lib.TWO_PI;
+                    if(ad > lib.PI) {
+                      ad -= lib.TWO_PI;
                     }
                     ship.direction = ad > 0 ? 1 : -1;
                   }
