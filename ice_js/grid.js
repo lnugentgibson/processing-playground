@@ -230,6 +230,16 @@ class Grid {
           return (id) => index[id].position.copy();
         }
       },
+      get: {
+        get: () => {
+          return (id) => {
+            return {
+              value: index[id].value,
+              position: index[id].position.copy(),
+            };
+          };
+        }
+      },
       updateValue: {
         get: () => {
           return (id, value) => {
