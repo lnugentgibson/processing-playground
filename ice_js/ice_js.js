@@ -2,6 +2,37 @@
 /*global p5*/
 /*global Ice*/
 
+const flock_p5_def = ( p ) => {
+  var resolution = 1024;
+  var birds;
+  p.setup = function() {
+    p.createCanvas(resolution, resolution);
+    var players = [
+    {
+      id: 0,
+      color: 'red',
+    },
+    //*
+    {
+      id: 1,
+      color: 'green',
+    },
+    {
+      id: 2,
+      color: 'yellow',
+    },
+    //*/
+    ];
+    birds = new Ships(p, players);
+  };
+  var i = 0;
+  p.draw = function() {
+    p.background(0/*, 255, 0*/);
+    birds.draw();
+    birds.update();
+  };
+};
+
 const ice_p5_def = ( p ) => {
 
   var resolution = 1024;
@@ -121,162 +152,5 @@ const ice_p5_def = ( p ) => {
   };
 };
 
-const flock_p5_def = ( p ) => {
-  var resolution = 1024;
-  var grid;
-  var flocks = [
-  {
-    color: 'red',
-  },
-  {
-    color: 'green',
-  },
-  {
-    color: 'yellow',
-  },
-  ];
-  p.setup = function() {
-    p.createCanvas(resolution, resolution);
-    birds = new Grid(p, p.width, p.height, 32, 32);
-    flocks.forEach(flock => {
-      var center = p.createVector(p.random(p.width), p.random(p.height));
-      var range = p.random(256) + 128;
-      _.times(64, () => {
-        var r = p.random(1);
-        r *= r * range;
-        var angle = p.random(p.TWO_PI);
-        var velocity = p.createVector(p.random(2) - 1, p.random(2) - 1);
-        velocity.setMag(4);
-        birds.push({
-          flock,
-          velocity,
-        }, p5.Vector.add(center, p.createVector(r * p.cos(angle), r * p.sin(angle))));
-      });
-    });
-  };
-  var i = 0;
-  p.draw = function() {
-    p.background(0);
-    var r1 = 1, r2 = 2 * r1, r4 = 4 * r1;
-    birds.forEach((bird, position) => {
-      let {flock, velocity} = bird;
-      velocity = velocity.copy();
-      velocity.normalize();
-      p.push();
-      p.noStroke();
-      p.fill(flock.color);
-      p.translate(position.x, position.y);
-      var perpendicular = p.createVector(velocity.y, -velocity.x);
-      p.quad(
-        r4 * velocity.x, r4 * velocity.y,
-        r2 * perpendicular.x, r2 * perpendicular.y,
-        -r1 * velocity.x, -r1 * velocity.y,
-        -r2 * perpendicular.x, -r2 * perpendicular.y
-      );
-      if(true) {
-        var threshold = r4;
-        if(position.x < threshold) {
-          p.quad(
-            p.width + r4 * velocity.x, r4 * velocity.y,
-            p.width + r2 * perpendicular.x, r2 * perpendicular.y,
-            p.width - r1 * velocity.x, -r1 * velocity.y,
-            p.width - r2 * perpendicular.x, -r2 * perpendicular.y
-          );
-          if(position.y < threshold) {
-            p.quad(
-              p.width + r4 * velocity.x, p.height + r4 * velocity.y,
-              p.width + r2 * perpendicular.x, p.height + r2 * perpendicular.y,
-              p.width - r1 * velocity.x, p.height - r1 * velocity.y,
-              p.width - r2 * perpendicular.x, p.height - r2 * perpendicular.y
-            );
-          }
-          else if(position.y > p.height - threshold) {
-            p.quad(
-              p.width + r4 * velocity.x, -p.height + r4 * velocity.y,
-              p.width + r2 * perpendicular.x, -p.height + r2 * perpendicular.y,
-              p.width - r1 * velocity.x, -p.height - r1 * velocity.y,
-              p.width - r2 * perpendicular.x, -p.height - r2 * perpendicular.y
-            );
-          }
-        }
-        else if(position.x > p.width - threshold) {
-          p.quad(
-            -p.width + r4 * velocity.x, r4 * velocity.y,
-            -p.width + r2 * perpendicular.x, r2 * perpendicular.y,
-            -p.width - r1 * velocity.x, -r1 * velocity.y,
-            -p.width - r2 * perpendicular.x, -r2 * perpendicular.y
-          );
-          if(position.y < threshold) {
-            p.quad(
-              -p.width + r4 * velocity.x, p.height + r4 * velocity.y,
-              -p.width + r2 * perpendicular.x, p.height + r2 * perpendicular.y,
-              -p.width - r1 * velocity.x, p.height - r1 * velocity.y,
-              -p.width - r2 * perpendicular.x, p.height - r2 * perpendicular.y
-            );
-          }
-          else if(position.y > p.height - threshold) {
-            p.quad(
-              -p.width + r4 * velocity.x, -p.height + r4 * velocity.y,
-              -p.width + r2 * perpendicular.x, -p.height + r2 * perpendicular.y,
-              -p.width - r1 * velocity.x, -p.height - r1 * velocity.y,
-              -p.width - r2 * perpendicular.x, -p.height - r2 * perpendicular.y
-            );
-          }
-        }
-        else {
-          if(position.y < threshold) {
-            p.quad(
-              r4 * velocity.x, p.height + r4 * velocity.y,
-              r2 * perpendicular.x, p.height + r2 * perpendicular.y,
-              -r1 * velocity.x, p.height - r1 * velocity.y,
-              -r2 * perpendicular.x, p.height - r2 * perpendicular.y
-            );
-          }
-          else if(position.y > p.height - threshold) {
-            p.quad(
-              r4 * velocity.x, -p.height + r4 * velocity.y,
-              r2 * perpendicular.x, -p.height + r2 * perpendicular.y,
-              -r1 * velocity.x, -p.height - r1 * velocity.y,
-              -r2 * perpendicular.x, -p.height - r2 * perpendicular.y
-            );
-          }
-        }
-      }
-      p.pop();
-      //if(!i) {
-      //  console.log({bird, position});
-      //}
-    });
-    i++;
-    p.noStroke();
-    p.fill(255);
-    p.textAlign(p.LEFT, p.TOP);
-    p.textSize(12);
-    p.textStyle(p.NORMAL);
-    p.text(`# birds: ${birds.length}`, 5, 5);
-    birds.forEach((bird, position, i, j, k, id) => {
-      let {velocity} = bird;
-      var traversed = velocity.copy();
-      traversed.mult(0.1);
-      var npos = p5.Vector.add(position, traversed);
-      if(true) {
-        while(npos.x < 0) {
-          npos.x += p.width;
-        }
-        while(npos.x > p.width) {
-          npos.x -= p.width;
-        }
-        while(npos.y < 0) {
-          npos.y += p.height;
-        }
-        while(npos.y > p.height) {
-          npos.y -= p.height;
-        }
-      }
-      birds.updatePosition(id, npos);
-    });
-  };
-};
-
-//* let ice_p5 = */ new p5(ice_p5_def);
-/* let flock_p5 = */ new p5(flock_p5_def);
+/* let ice_p5 = */ new p5(ice_p5_def);
+//* let flock_p5 = */ new p5(flock_p5_def);

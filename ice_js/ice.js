@@ -2,11 +2,8 @@
 /*global Grid*/
 /*global Bases*/
 
-var players, ships;
-
 class Ice {
   constructor(lib, numPlayers, numBases) {
-    var ships;
     var players = _.times(numPlayers, (i) => {
       var player = {
         id: i,
@@ -47,6 +44,7 @@ class Ice {
       base.owner = player;
     });
     
+    /*
     var shipGrid = new Grid(lib, lib.width, lib.height, 16, 16);
     bases.forEachBase(base => {
       var owner = base.owner;
@@ -60,12 +58,16 @@ class Ice {
         }, lib.createVector(base.position.x + 24 * lib.cos(angle), base.position.y + 24 * lib.sin(angle)));
       });
     });
+    //*/
+    var ships = new Ships(lib, players);
     
     Object.defineProperties(this, {
       draw: {
         get: () => {
           return () => {
             bases.draw();
+            ships.draw();
+            /*
             shipGrid.forEach((ship, position) => {
               let {
                 owner,
@@ -83,6 +85,7 @@ class Ice {
               lib.quad(4, 0, 0, 2, -2, 0, 0, -2);
               lib.pop();
             });
+            //*/
           };
         },
       },
@@ -90,6 +93,8 @@ class Ice {
         get: () => {
           return () => {
             bases.update();
+            ships.update();
+            /*
             var ids = shipGrid.ids;
             var updateShip = id => {
               var ship = shipGrid.getValue(id);
@@ -127,6 +132,7 @@ class Ice {
             ids.forEach(id => {
               updateShip(id);
             });
+            //*/
           };
         },
       },

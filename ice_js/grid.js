@@ -158,7 +158,8 @@ class Grid {
         accum,
       };
     }
-    function iterateDistance(position, range, f, init, ctx) {
+    function iterateDistance(position, radius, f, init, ctx) {
+      var range = lib.ceil(radius / lib.min(cellWidth, cellHeight));
       let { col, row } = indexOf(position);
       var rows = [];
       var accum = init;
@@ -193,6 +194,12 @@ class Grid {
       };
     }
     Object.defineProperties(this, {
+      rows: {
+        get: () => yCells,
+      },
+      cols: {
+        get: () => xCells,
+      },
       length: {
         get: () => len
       },
@@ -230,12 +237,17 @@ class Grid {
           return (id) => index[id].position.copy();
         }
       },
-      get: {
+      getEntity: {
         get: () => {
           return (id) => {
+            let {value, position, row, col, offset, id: eid} = index[id];
             return {
-              value: index[id].value,
-              position: index[id].position.copy(),
+              value,
+              position: position.copy(),
+              row,
+              col,
+              offset,
+              id: eid,
             };
           };
         }
@@ -254,11 +266,23 @@ class Grid {
             var entity = index[id];
             let { col: oldCol, row: oldRow } = entity;
             var oldCell = grid[oldRow + 1].cells[oldCol + 1];
+            let { col, row } = indexOf(position);
+            Object.assign(entity, {
+              row,
+              col,
+              position,
+            });
+            if(oldRow != row || oldCol != col) {
+              oldCell.entities = oldCell.entities.filter(entity => entity.id != id);
+              var cell = grid[row + 1].cells[col + 1];
+              cell.entities.push(entity);
+            }
+            /*
             var pindex = indexOf(position);
             if(!pindex) {
               return;
             }
-            let { col, row } = pindex;
+            let { col, row } = indexOf(position);
             entity.position = position;
             if(oldRow != row || oldCol != col) {
               oldCell.entities = oldCell.entities.filter(entity => entity.id != id);
@@ -269,6 +293,7 @@ class Grid {
                 col,
               });
             }
+            //*/
           };
         },
       },
@@ -371,7 +396,18 @@ class Grid {
         get: () => {
           return (position, range, f, init, ctx) => {
             return iterateNeighborhood(position, range, (accum, value, position, row, col, i, id) => {
-              var val = f.call(ctx, value, position, row, col, i, id);
+              var val = f.call(ctx, accum, value, position, row, col, i, id);
+              return {val, cont: true};
+            }, init).accum;
+          };
+        }
+      },
+      reduceDistance: {
+        get: () => {
+          return (center, radius, f, init, ctx) => {
+            return iterateDistance(center, radius, (accum, value, position, row, col, i, id) => {
+              //var difference = p5.Vector.sub(position, center);
+              var val = f.call(ctx, accum, value, position/*, difference*/, row, col, i, id);
               return {val, cont: true};
             }, init).accum;
           };
