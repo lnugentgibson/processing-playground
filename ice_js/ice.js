@@ -44,21 +44,6 @@ class Ice {
       base.owner = player;
     });
     
-    /*
-    var shipGrid = new Grid(lib, lib.width, lib.height, 16, 16);
-    bases.forEachBase(base => {
-      var owner = base.owner;
-      _.times(8, i => {
-        var angle = i * lib.TWO_PI / 8;
-        shipGrid.push({
-          base,
-          owner,
-          angle,
-          state: 'orbit',
-        }, lib.createVector(base.position.x + 24 * lib.cos(angle), base.position.y + 24 * lib.sin(angle)));
-      });
-    });
-    //*/
     var ships = new Ships(lib, players);
     
     Object.defineProperties(this, {
@@ -67,25 +52,6 @@ class Ice {
           return () => {
             bases.draw();
             ships.draw();
-            /*
-            shipGrid.forEach((ship, position) => {
-              let {
-                owner,
-                angle,
-              } = ship;
-              lib.noStroke();
-              if (owner == undefined) {
-                lib.fill(255);
-              } else {
-                lib.fill(owner.color);
-              }
-              lib.push();
-              lib.translate(position.x, position.y);
-              lib.rotate(angle);
-              lib.quad(4, 0, 0, 2, -2, 0, 0, -2);
-              lib.pop();
-            });
-            //*/
           };
         },
       },
@@ -93,46 +59,7 @@ class Ice {
         get: () => {
           return () => {
             bases.update();
-            ships.update();
-            /*
-            var ids = shipGrid.ids;
-            var updateShip = id => {
-              var ship = shipGrid.getValue(id);
-              let {
-                base,
-                angle,
-                state,
-                target,
-                direction,
-                end,
-              } = ship;
-              var v = 0.5;
-              var position = shipGrid.getPosition(id);
-              if(state == 'orbit') {
-                ship.angle = angle = angle + v / 24;
-                position = p5.Vector.add(base.position, lib.createVector(24 * lib.cos(angle), 24 * lib.sin(angle)));
-                shipGrid.updatePosition(id, position);
-              }
-              else if(state == 'flyby') {
-                ship.angle = angle = angle + direction * v / 24;
-                position = p5.Vector.add(base.position, lib.createVector(24 * lib.cos(angle), 24 * lib.sin(angle)));
-                shipGrid.updatePosition(id, position);
-                if((end - angle) * direction < 0) {
-                  ship.state = 'move';
-                }
-              }
-              else if(state == 'move') {
-                var diff = p5.Vector.sub(target, position);
-                ship.angle = angle = diff.heading();
-                var shift = lib.createVector(v * lib.cos(angle), v * lib.sin(angle));
-                position.add(shift);
-                shipGrid.updatePosition(id, position);
-              }
-            };
-            ids.forEach(id => {
-              updateShip(id);
-            });
-            //*/
+            ships.update(bases);
           };
         },
       },

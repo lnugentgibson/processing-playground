@@ -100,7 +100,21 @@ class Bases {
             return unowned[lib.floor(lib.random(unowned.length))];
           };
         }
-      }
+      },
+      forEachDistance: {
+        get: () => {
+          return (center, radius, f, ctx) => {
+            grid.forEachDistance(center, radius, f, ctx);
+          };
+        },
+      },
+      reduceDistance: {
+        get: () => {
+          return (center, radius, f, init, ctx) => {
+            return grid.reduceDistance(center, radius, f, init, ctx);
+          };
+        },
+      },
     });
 
     bases.forEach((source) => {

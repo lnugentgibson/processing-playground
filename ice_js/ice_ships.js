@@ -33,9 +33,9 @@ class Ships {
       },
       update: {
         get: () => {
-          return () => {
+          return (bases) => {
             ships.forEach(ship => {
-              ship.update();
+              ship.update(bases);
             });
           };
         },

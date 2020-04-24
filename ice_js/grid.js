@@ -342,6 +342,17 @@ class Grid {
           };
         }
       },
+      forEachDistance: {
+        get: () => {
+          return (center, radius, f, ctx) => {
+            return iterateDistance(center, radius, (accum, value, position, row, col, i, id) => {
+              //var difference = p5.Vector.sub(position, center);
+              f.call(ctx, value, position/*, difference*/, row, col, i, id);
+              return {cont: true};
+            }, init).accum;
+          };
+        }
+      },
       map: {
         get: () => {
           return (f, ctx) => {

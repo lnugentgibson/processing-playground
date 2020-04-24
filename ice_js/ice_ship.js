@@ -138,7 +138,7 @@ class Ship {
     }
     lib.pop();
   }
-  update() {
+  update(bases) {
     let {lib, grid, id, player, position, velocity: oVelocity} = this;
     var velocity = oVelocity.copy();
     
@@ -163,7 +163,7 @@ class Ship {
     
     // Separation
     var separationRadius = 32;
-    var separationForce = 0.1;
+    var separationForce = 0.2;
     var separationMax = 5;
     var separation = grid.reduceDistance(position, separationRadius, (force, sValue, sPosition, row, col, i, sId) => {
       if(sId == id) {
@@ -182,6 +182,24 @@ class Ship {
       separation.setMag(separationMax);
     }
     velocity.add(separation);
+    
+    // Avoidance
+    if(bases) {
+      var avoidanceRadius = 128;
+      var avoidanceForce = 0.2;
+      var avoidanceMax = 2;
+      var avoidance = bases.reduceDistance(position, avoidanceRadius, (force, vValue, vPosition, row, col, i, vId) => {
+        var difference = p5.Vector.sub(vPosition, position);
+        var distance = difference.mag() - 24;
+        difference.setMag(-lib.map(distance, 0, avoidanceRadius, avoidanceForce, 0));
+        force.add(difference);
+        return force;
+      }, lib.createVector(0, 0));
+      if(avoidance.mag() > avoidanceMax) {
+        avoidance.setMag(avoidanceMax);
+      }
+      velocity.add(avoidance);
+    }
     
     // Alignment
     var alignmentRadius = 64;
