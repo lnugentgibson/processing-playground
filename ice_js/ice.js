@@ -60,6 +60,11 @@ class Ice {
           return () => {
             bases.update();
             ships.update(bases);
+            players.forEach(player => {
+              if(player.control == 'random') {
+                player.target = lib.createVector(lib.random(lib.width), lib.random(lib.height));
+              }
+            });
           };
         },
       },
@@ -70,45 +75,7 @@ class Ice {
               if(player.control != 'user') {
                 return;
               }
-              shipGrid.forEach((ship, position) => {
-                let {
-                  base,
-                  owner,
-                  angle,
-                  state,
-                } = ship;
-                if(owner != player) {
-                  return;
-                }
-                if(state == 'orbit') {
-                  var diff = p5.Vector.sub(target, position);
-                  var dir = diff.copy();
-                  dir.normalize();
-                  var head = lib.createVector(lib.cos(angle), lib.sin(angle));
-                  if(dir.dot(head) > 0) {
-                    ship.state = 'move';
-                    ship.target = target;
-                  }
-                  else {
-                    ship.state = 'flyby';
-                    var radius = p5.Vector.sub(position, base.position);
-                    var d = dir.dot(radius);
-                    radius.x -= d * dir.x;
-                    radius.y -= d * dir.y;
-                    ship.target = target;
-                    ship.end = radius.heading();
-                    var ad = (lib.TWO_PI - ship.end - angle) % lib.TWO_PI;
-                    if(ad > lib.PI) {
-                      ad -= lib.TWO_PI;
-                    }
-                    ship.direction = ad > 0 ? 1 : -1;
-                  }
-                }
-                else if(state == 'move' || state == 'idle') {
-                  ship.state = 'move';
-                  ship.target = target;
-                }
-              });
+              player.target = target;
             });
           };
         },

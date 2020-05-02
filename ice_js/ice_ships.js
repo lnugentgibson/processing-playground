@@ -1,6 +1,6 @@
 class Ships {
   constructor(lib, players) {
-    var grid = new Grid(lib, lib.width, lib.height, 32, 32);
+    var grid = new Grid(lib, lib.width, lib.height, 16, 16);
     var ships = [];
     players.forEach(player => {
       var center = lib.createVector(lib.random(lib.width), lib.random(lib.height));

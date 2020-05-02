@@ -142,6 +142,14 @@ class Ship {
     let {lib, grid, id, player, position, velocity: oVelocity} = this;
     var velocity = oVelocity.copy();
     
+    // Target
+    if(player.target) {
+      var targetForce = 1;
+      var target = p5.Vector.sub(player.target, position);
+      target.setMag(targetForce);
+      velocity.add(target);
+    }
+    
     // Drag
     var dragForce = 0.02;
     var drag = oVelocity.copy();
@@ -163,7 +171,7 @@ class Ship {
     
     // Separation
     var separationRadius = 32;
-    var separationForce = 0.2;
+    var separationForce = 0.5;
     var separationMax = 5;
     var separation = grid.reduceDistance(position, separationRadius, (force, sValue, sPosition, row, col, i, sId) => {
       if(sId == id) {
@@ -184,21 +192,46 @@ class Ship {
     velocity.add(separation);
     
     // Avoidance
+    var avoidanceForce = 0.5;
+    if(avoidanceForce > 0.001) {
+      if(bases) {
+        var avoidanceRadius = 64;
+        var avoidanceMax = 5;
+        var avoidance = bases.reduceDistance(position, avoidanceRadius, (force, vValue, vPosition, row, col, i, vId) => {
+          var difference = p5.Vector.sub(position, vPosition);
+          var distance = lib.max(difference.mag() - 24, 0);
+          difference.setMag(lib.map(distance, 0, avoidanceRadius, avoidanceForce, 0));
+          force.add(difference);
+          return force;
+        }, lib.createVector(0, 0));
+        if(avoidance.mag() > avoidanceMax) {
+          avoidance.setMag(avoidanceMax);
+        }
+        velocity.add(avoidance);
+      }
+    }
+    
+    // Orbit
     if(bases) {
-      var avoidanceRadius = 128;
-      var avoidanceForce = 0.2;
-      var avoidanceMax = 2;
-      var avoidance = bases.reduceDistance(position, avoidanceRadius, (force, vValue, vPosition, row, col, i, vId) => {
+      var orbitRadius = 128;
+      var orbitForce = 256;
+      var orbitMax = 16;
+      var orbit = bases.reduceDistance(position, orbitRadius, (force, vValue, vPosition, row, col, i, vId) => {
         var difference = p5.Vector.sub(vPosition, position);
-        var distance = difference.mag() - 24;
-        difference.setMag(-lib.map(distance, 0, avoidanceRadius, avoidanceForce, 0));
-        force.add(difference);
+        var distance = difference.mag();
+        var vel = difference.copy();
+        vel.normalize();
+        var m = vel.dot(oVelocity);
+        var f = lib.map(lib.max(m, 0.2) / lib.max(distance, 0.1), 0, orbitRadius, 0, orbitForce);
+        var rot = lib.createVector(vel.y, -vel.x);
+        rot.setMag(f);
+        force.add(rot);
         return force;
       }, lib.createVector(0, 0));
-      if(avoidance.mag() > avoidanceMax) {
-        avoidance.setMag(avoidanceMax);
+      if(orbit.mag() > orbitMax) {
+        orbit.setMag(orbitMax);
       }
-      velocity.add(avoidance);
+      velocity.add(orbit);
     }
     
     // Alignment

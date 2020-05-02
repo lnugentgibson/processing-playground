@@ -456,13 +456,13 @@ class Grid {
       },
       kNearest: {
         get: () => {
-          return (id, k, print) => {
+          return (id, k, options) => {
             var center = index[id];
             var centerCell = grid[center.row + 1].cells[center.col + 1];
             var nearest = [];
-            function checkCell(cell) {
+            function checkCell(cell, options) {
               var dists = cell.entities
-                .filter((o) => o.id != center.id)
+                .filter(entity => entity.id != center.id && (!options || !options.filter || options.filter(entity)))
                 .map((entity) => {
                   return {
                     id: entity.id,
@@ -474,7 +474,7 @@ class Grid {
                 .sort((a, b) => a.dist - b.dist)
                 .slice(0, k);
             }
-            checkCell(centerCell);
+            checkCell(centerCell, options);
             for (var level = 0; level < 10; level++) {
               var shiftX = cellWidth * (level - 1);
               var shiftY = cellHeight * (level - 1);
